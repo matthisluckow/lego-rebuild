@@ -2,8 +2,9 @@ import streamlit as st
 import time
 import random
 from pathlib import Path
-from streamlit_pdf_viewer import pdf_viewer  # Ny import
+from streamlit_pdf_viewer import pdf_viewer  # Kræver at requirements.txt er opdateret
 
+# --- OPSÆTNING AF STI ---
 BASE_DIR = Path(__file__).resolve().parent
 
 LEGO_LOGO_URL = "https://upload.wikimedia.org/wikipedia/commons/2/24/LEGO_logo.svg"
@@ -11,17 +12,38 @@ LEGO_LOGO_URL = "https://upload.wikimedia.org/wikipedia/commons/2/24/LEGO_logo.s
 # --- KONFIGURATION AF APPENS VIBE ---
 st.set_page_config(page_title="LEGO ReBuild", page_icon="🟥", layout="centered")
 
-# --- NY FUNKTION TIL PDF VISNING (MED ST-PDF-VIEWER) ---
+# --- FUNKTION: VISNING AF MANUAL (MOBIL-VENLIG) ---
 @st.dialog("Byggevejledning: X-Wing Fighter")
 def vis_byggevejledning():
-    # 1. Definer stien til filen
+    """
+    Viser en dialogboks med PDF.
+    Inkluderer en download-knap for bedste mobil-oplevelse.
+    """
     manual_path = BASE_DIR / "x-wing-manual.pdf"
     
-    # 2. Tjek om filen findes og vis den
     if manual_path.exists():
-        st.write("Følg trinene herunder for at bygge din model!")
-        # width og height styrer størrelsen på pdf-vinduet
-        pdf_viewer(str(manual_path), width=700, height=500)
+        # Læs filen ind til download-knappen
+        with open(manual_path, "rb") as f:
+            pdf_data = f.read()
+            
+        # 1. DOWNLOAD KNAP (VIGTIG FOR MOBIL)
+        st.download_button(
+            label="📱 Åbn manual i fuld skærm",
+            data=pdf_data,
+            file_name="x-wing-manual.pdf",
+            mime="application/pdf",
+            use_container_width=True, # Gør knappen bred
+            icon="📥"
+        )
+        
+        st.caption("Tip: Download filen for at kunne zoome helt ind på telefonen.")
+        st.divider()
+
+        # 2. FORHÅNDSVISNING (RESPONSIV)
+        st.write("**Forhåndsvisning:**")
+        # Vi udelader width/height, så den tilpasser sig pop-up vinduets bredde automatisk
+        pdf_viewer(str(manual_path))
+        
     else:
         st.error(f"Kunne ikke finde manualen: {manual_path.name}")
         st.info("Sørg for at 'x-wing-manual.pdf' ligger i samme mappe som denne python-fil.")
@@ -77,6 +99,7 @@ if uploaded_file is not None:
 
     col1, col2 = st.columns(2)
 
+    # KOLONNE 1: X-WING
     with col1:
         # Tjekker om billedet findes, ellers viser placeholder tekst
         img_path = BASE_DIR / "x-wing.png"
@@ -92,6 +115,7 @@ if uploaded_file is not None:
         if st.button("BYG NU (Gratis)", key="btn1"):
             vis_byggevejledning()
 
+    # KOLONNE 2: BORGEN
     with col2:
         img_path_castle = BASE_DIR / "lego-castle-kongens-borg-lego-70404.webp"
         if img_path_castle.exists():
@@ -100,21 +124,4 @@ if uploaded_file is not None:
             st.info("Mangler billede: lego-castle...")
             
         st.write("**Ridderborg tårn**")
-        st.progress(85, text="Du har 85% af klodserne")
-        st.warning("Mangler: 12 klodser")
-        
-        # --- TRIN 3: FORRETNINGSMODEL (Pick-a-Brick) ---
-        st.write("**Pris for manglende dele:** 24 DKK")
-        if st.button("Køb manglende + BYG", key="btn2"):
-            st.toast('Klodser tilføjet til kurv!', icon='🛒')
-            st.write("📦 Levering: 2-3 dage")
-
-    # --- TRIN 4: SOCIAL PROOF / COMMUNITY ---
-    st.write("---")
-    st.write("👀 *Dine venner byggede dette i dag:*")
-    st.caption("Elias (9 år) byggede en dinosaur af sine gamle City-sæt.")
-    st.image(str(BASE_DIR / "lego-dinosaur.png"), caption="Dinosaur af Elias", use_container_width=True)
-    st.caption("Sofia (7 år) skabte den grønne drage med sine klodser.")
-    st.image(str(BASE_DIR / "den_grønne_drage.jpg"), caption="Drage af Sofia", use_container_width=True)
-else:
-    st.write("👆 Start med at uploade et billede for at se magien.")
+        st.progress(85
