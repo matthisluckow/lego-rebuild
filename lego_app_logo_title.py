@@ -1,8 +1,8 @@
 import streamlit as st
 import time
 import random
-import base64
 from pathlib import Path
+from streamlit_pdf_viewer import pdf_viewer  # Ny import
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -11,27 +11,20 @@ LEGO_LOGO_URL = "https://upload.wikimedia.org/wikipedia/commons/2/24/LEGO_logo.s
 # --- KONFIGURATION AF APPENS VIBE ---
 st.set_page_config(page_title="LEGO ReBuild", page_icon="🟥", layout="centered")
 
-# --- FUNKTIONER TIL PDF VISNING ---
-def show_pdf(file_path):
-    """Hjælpefunktion til at vise en PDF fil via iframe"""
-    try:
-        with open(file_path, "rb") as f:
-            base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-        # Vi laver en HTML iframe der viser PDF'en
-        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf"></iframe>'
-        st.markdown(pdf_display, unsafe_allow_html=True)
-    except FileNotFoundError:
-        st.error(f"Kunne ikke finde manualen: {file_path.name}")
-
+# --- NY FUNKTION TIL PDF VISNING (MED ST-PDF-VIEWER) ---
 @st.dialog("Byggevejledning: X-Wing Fighter")
 def vis_byggevejledning():
-    st.write("Følg trinene herunder for at bygge din model!")
-    
-    # Sti til PDF filen
+    # 1. Definer stien til filen
     manual_path = BASE_DIR / "x-wing-manual.pdf"
     
-    # Vis PDF'en
-    show_pdf(manual_path)
+    # 2. Tjek om filen findes og vis den
+    if manual_path.exists():
+        st.write("Følg trinene herunder for at bygge din model!")
+        # width og height styrer størrelsen på pdf-vinduet
+        pdf_viewer(str(manual_path), width=700, height=500)
+    else:
+        st.error(f"Kunne ikke finde manualen: {manual_path.name}")
+        st.info("Sørg for at 'x-wing-manual.pdf' ligger i samme mappe som denne python-fil.")
 
 # --- SIDEBAR: GAMIFICATION TIL BARNET (User Profile) ---
 st.sidebar.image(LEGO_LOGO_URL, width=100)
