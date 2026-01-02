@@ -1,13 +1,37 @@
 import streamlit as st
 import time
 import random
+import base64
 from pathlib import Path
+
 BASE_DIR = Path(__file__).resolve().parent
 
 LEGO_LOGO_URL = "https://upload.wikimedia.org/wikipedia/commons/2/24/LEGO_logo.svg"
 
 # --- KONFIGURATION AF APPENS VIBE ---
 st.set_page_config(page_title="LEGO ReBuild", page_icon="🟥", layout="centered")
+
+# --- FUNKTIONER TIL PDF VISNING ---
+def show_pdf(file_path):
+    """Hjælpefunktion til at vise en PDF fil via iframe"""
+    try:
+        with open(file_path, "rb") as f:
+            base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+        # Vi laver en HTML iframe der viser PDF'en
+        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf"></iframe>'
+        st.markdown(pdf_display, unsafe_allow_html=True)
+    except FileNotFoundError:
+        st.error(f"Kunne ikke finde manualen: {file_path.name}")
+
+@st.dialog("Byggevejledning: X-Wing Fighter")
+def vis_byggevejledning():
+    st.write("Følg trinene herunder for at bygge din model!")
+    
+    # Sti til PDF filen
+    manual_path = BASE_DIR / "x-wing-manual.pdf"
+    
+    # Vis PDF'en
+    show_pdf(manual_path)
 
 # --- SIDEBAR: GAMIFICATION TIL BARNET (User Profile) ---
 st.sidebar.image(LEGO_LOGO_URL, width=100)
@@ -61,15 +85,27 @@ if uploaded_file is not None:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.image(str(BASE_DIR / "x-wing.png"), caption="Rumskib", use_container_width=True)
+        # Tjekker om billedet findes, ellers viser placeholder tekst
+        img_path = BASE_DIR / "x-wing.png"
+        if img_path.exists():
+            st.image(str(img_path), caption="Rumskib", use_container_width=True)
+        else:
+            st.info("Mangler billede: x-wing.png")
+            
         st.write("**X-Wing Fighter (Mini)**")
         st.progress(100, text="Du har 100% af klodserne")
+        
+        # --- KNAPPEN DER ÅBNER MANUALEN ---
         if st.button("BYG NU (Gratis)", key="btn1"):
-            st.balloons()
-            st.success("Henter byggevejledning... God fornøjelse!")
+            vis_byggevejledning()
 
     with col2:
-        st.image(str(BASE_DIR / "lego-castle-kongens-borg-lego-70404.webp"), caption="Middelalderslot", use_container_width=True)
+        img_path_castle = BASE_DIR / "lego-castle-kongens-borg-lego-70404.webp"
+        if img_path_castle.exists():
+            st.image(str(img_path_castle), caption="Middelalderslot", use_container_width=True)
+        else:
+            st.info("Mangler billede: lego-castle...")
+            
         st.write("**Ridderborg tårn**")
         st.progress(85, text="Du har 85% af klodserne")
         st.warning("Mangler: 12 klodser")
