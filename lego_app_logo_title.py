@@ -124,4 +124,21 @@ if uploaded_file is not None:
             st.info("Mangler billede: lego-castle...")
             
         st.write("**Ridderborg tårn**")
-        st.progress(85
+        st.progress(85, text="Du har 85% af klodserne")
+        st.warning("Mangler: 12 klodser")
+        
+        # --- FORRETNINGSMODEL (Pick-a-Brick) ---
+        st.write("**Pris for manglende dele:** 24 DKK")
+        if st.button("Køb manglende + BYG", key="btn2"):
+            st.toast('Klodser tilføjet til kurv!', icon='🛒')
+            st.write("📦 Levering: 2-3 dage")
+
+    # --- TRIN 3: SOCIAL PROOF / COMMUNITY ---
+    st.write("---")
+    st.write("👀 *Dine venner byggede dette i dag:*")
+    st.caption("Elias (9 år) byggede en dinosaur af sine gamle City-sæt.")
+    st.image(str(BASE_DIR / "lego-dinosaur.png"), caption="Dinosaur af Elias", use_container_width=True)
+    st.caption("Sofia (7 år) skabte den grønne drage med sine klodser.")
+    st.image(str(BASE_DIR / "den_grønne_drage.jpg"), caption="Drage af Sofia", use_container_width=True)
+else:
+    st.write("👆 Start med at uploade et billede for at se magien.")
