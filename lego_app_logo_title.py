@@ -10,48 +10,66 @@ BASE_DIR = Path(__file__).resolve().parent
 LEGO_LOGO_URL = "https://upload.wikimedia.org/wikipedia/commons/2/24/LEGO_logo.svg"
 
 # --- KONFIGURATION AF APPENS VIBE ---
-st.set_page_config(page_title="LEGO ReBuild", page_icon="🟥", layout="centered")
+# RETTELSE: Tilføjet initial_sidebar_state="collapsed" så man ser knappen med det samme!
+st.set_page_config(
+    page_title="LEGO ReBuild", 
+    page_icon="🟥", 
+    layout="centered", 
+    initial_sidebar_state="collapsed"
+)
 
 # --- CSS HACK: TILPAS SIDEBAR KNAPPEN ---
 st.markdown(
     """
     <style>
-    /* Finder knappen der åbner sidebaren (Collapsed Control) */
+    /* 1. Selve knappen (når sidebaren er lukket) */
     [data-testid="stSidebarCollapsedControl"] {
-        background-color: #E3000B; /* LEGO Rød */
-        color: white;
-        border-radius: 8px; /* Runde hjørner */
-        border: 2px solid white; /* Hvid kant for synlighed */
-        padding: 8px 15px; /* Gør den større */
-        width: auto !important; /* Tillad den at vokse med teksten */
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.3); /* Skygge effekt */
+        background-color: #E3000B !important; /* LEGO Rød */
+        border: 2px solid white !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+        
+        /* Flexbox sikrer at pil og tekst står pænt på linje */
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        
+        width: auto !important;
+        height: auto !important;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.3) !important;
+        
+        /* Flyt knappen lidt ned/ind så den ikke sidder helt oppe i hjørnet */
+        margin-top: 10px !important;
+        margin-left: 10px !important;
     }
 
-    /* Tilføjer teksten "Min Profil" efter pil-ikonet */
+    /* 2. Teksten "Min Profil" */
     [data-testid="stSidebarCollapsedControl"]::after {
-        content: "Min Profil";
-        font-weight: bold;
-        font-size: 16px;
-        margin-left: 10px; /* Afstand til pilene */
-        color: white;
+        content: "Min Profil" !important;
+        font-weight: 800 !important; /* Extra bold */
+        font-size: 16px !important;
+        color: white !important;
+        padding-right: 5px !important;
     }
 
-    /* Sikrer at pil-ikonet er hvidt */
+    /* 3. Pil-ikonet */
     [data-testid="stSidebarCollapsedControl"] svg {
         fill: white !important;
-        width: 20px;
-        height: 20px;
+        width: 20px !important;
+        height: 20px !important;
     }
 
-    /* Hover effekt når musen holdes over */
+    /* 4. Hover effekt */
     [data-testid="stSidebarCollapsedControl"]:hover {
-        background-color: #B30009; /* Mørkere rød */
-        transform: scale(1.05); /* Puster sig lidt op */
+        background-color: #B30009 !important; /* Mørkere rød */
+        transform: scale(1.05);
+        transition: transform 0.2s;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 # --- FUNKTION: VISNING AF MANUAL (MOBIL-VENLIG) ---
 @st.dialog("Byggevejledning: X-Wing Fighter")
 def vis_byggevejledning():
