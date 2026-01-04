@@ -12,6 +12,46 @@ LEGO_LOGO_URL = "https://upload.wikimedia.org/wikipedia/commons/2/24/LEGO_logo.s
 # --- KONFIGURATION AF APPENS VIBE ---
 st.set_page_config(page_title="LEGO ReBuild", page_icon="🟥", layout="centered")
 
+# --- CSS HACK: TILPAS SIDEBAR KNAPPEN ---
+st.markdown(
+    """
+    <style>
+    /* Finder knappen der åbner sidebaren (Collapsed Control) */
+    [data-testid="stSidebarCollapsedControl"] {
+        background-color: #E3000B; /* LEGO Rød */
+        color: white;
+        border-radius: 8px; /* Runde hjørner */
+        border: 2px solid white; /* Hvid kant for synlighed */
+        padding: 8px 15px; /* Gør den større */
+        width: auto !important; /* Tillad den at vokse med teksten */
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.3); /* Skygge effekt */
+    }
+
+    /* Tilføjer teksten "Min Profil" efter pil-ikonet */
+    [data-testid="stSidebarCollapsedControl"]::after {
+        content: "Min Profil";
+        font-weight: bold;
+        font-size: 16px;
+        margin-left: 10px; /* Afstand til pilene */
+        color: white;
+    }
+
+    /* Sikrer at pil-ikonet er hvidt */
+    [data-testid="stSidebarCollapsedControl"] svg {
+        fill: white !important;
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Hover effekt når musen holdes over */
+    [data-testid="stSidebarCollapsedControl"]:hover {
+        background-color: #B30009; /* Mørkere rød */
+        transform: scale(1.05); /* Puster sig lidt op */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 # --- FUNKTION: VISNING AF MANUAL (MOBIL-VENLIG) ---
 @st.dialog("Byggevejledning: X-Wing Fighter")
 def vis_byggevejledning():
