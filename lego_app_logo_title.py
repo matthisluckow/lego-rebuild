@@ -2,7 +2,7 @@ import streamlit as st
 import time
 import random
 from pathlib import Path
-from streamlit_pdf_viewer import pdf_viewer  # Kræver at requirements.txt er opdateret
+from streamlit_pdf_viewer import pdf_viewer
 
 # --- OPSÆTNING AF STI ---
 BASE_DIR = Path(__file__).resolve().parent
@@ -48,13 +48,33 @@ def vis_byggevejledning():
         st.error(f"Kunne ikke finde manualen: {manual_path.name}")
         st.info("Sørg for at 'x-wing-manual.pdf' ligger i samme mappe som denne python-fil.")
 
-# --- SIDEBAR: GAMIFICATION TIL BARNET (User Profile) ---
-st.sidebar.image(LEGO_LOGO_URL, width=100)
-st.sidebar.header("👤 Bygmester Profil")
-st.sidebar.write("**Navn:** Marcus (8 år)")
-st.sidebar.progress(75, text="Level 4: Master Builder")
-st.sidebar.write("⭐ **XP:** 450 / 600")
-st.sidebar.write("🏆 **Badges:** 🚀Rum-ekspert, ♻️Genbrugs-helt")
+# --- SIDEBAR: NYT OG FORBEDRET DESIGN ---
+with st.sidebar:
+    st.image(LEGO_LOGO_URL, width=120)
+    
+    st.write("---") # En lille streg
+    
+    # 1. Tydelig overskrift som ønsket
+    st.title("👤 Min Profil")
+    
+    # 2. "Kort-design" med ramme for at skabe blikfang
+    with st.container(border=True):
+        st.write("👋 **Hej Marcus (8 år)**")
+        
+        st.caption("Din Bygge-status:")
+        st.progress(75, text="Level 4: Master Builder")
+        
+        col_xp, col_coin = st.columns(2)
+        col_xp.metric("XP", "450", "+50")
+        col_coin.metric("Mønter", "12", "Shop")
+        
+        st.write("**Dine Badges:**")
+        st.markdown("🚀 *Rum-ekspert*")
+        st.markdown("♻️ *Genbrugs-helt*")
+        
+    # 3. Tydelig knap (Primary gør den rød/udfyldt)
+    if st.button("⚙️ Gå til Min Profil", type="primary", use_container_width=True):
+        st.toast("Åbner profilindstillinger...", icon="👤")
 
 # --- HOVEDSKÆRM: HERO SECTION ---
 st.markdown(
