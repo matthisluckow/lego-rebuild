@@ -140,7 +140,7 @@ def vis_profil():
     with col1:
         st.image(LEGO_LOGO_URL, width=60)
     with col2:
-        st.write("### Hej Marcus (8 år) 👋")
+        st.write("### Marcus (8 år)")
     
     st.write("---")
     current_xp = st.session_state['xp']
