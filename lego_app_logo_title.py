@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- SESSION STATE (HUSKER DINE DATA) ---
+# --- SESSION STATE ---
 if 'coins' not in st.session_state:
     st.session_state['coins'] = 12
 if 'xp' not in st.session_state:
@@ -28,14 +28,12 @@ if 'reward_claimed' not in st.session_state:
     st.session_state['reward_claimed'] = False
 if 'scan_reward_given' not in st.session_state:
     st.session_state['scan_reward_given'] = False
-
-# NYT: HUSKER LIKES FOR VENNERNE
 if 'likes_elias' not in st.session_state:
     st.session_state['likes_elias'] = 12
 if 'likes_sofia' not in st.session_state:
     st.session_state['likes_sofia'] = 28
 
-# --- CSS: STICKY HEADER & DESIGN ---
+# --- CSS: STICKY HEADER & FLYTNING AF KNAP ---
 st.markdown(
     """
     <style>
@@ -45,37 +43,45 @@ st.markdown(
         top: 0;
         left: 0;
         width: 100%;
-        background-color: rgba(255, 255, 255, 0.95);
-        border-bottom: 2px solid #E3000B;
-        padding: 10px 20px;
-        z-index: 999999;
+        height: 70px; /* Fast højde */
+        background-color: rgba(255, 255, 255, 0.98);
+        border-bottom: 3px solid #E3000B;
+        z-index: 999990; /* Ligger under knappen, men over indholdet */
         display: flex;
         justify-content: center;
+        align-items: center;
         box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
     }
+    
     @media (prefers-color-scheme: dark) {
         .sticky-header {
-            background-color: rgba(14, 17, 23, 0.95);
-            border-bottom: 2px solid #E3000B;
+            background-color: rgba(14, 17, 23, 0.98);
+            border-bottom: 3px solid #E3000B;
         }
     }
+
+    /* Container indeni headeren */
     .header-content {
         display: flex;
-        justify-content: space-between;
+        justify-content: space-between; /* Spreder indholdet ud */
         align-items: center;
         width: 100%;
         max-width: 700px;
+        padding-left: 170px; /* VIGTIGT: Laver plads til knappen i venstre side! */
+        padding-right: 10px;
     }
+
+    /* Stat bokse (XP og Mønter) */
     .stat-pill {
         background-color: #f0f2f6;
         color: #31333F;
-        padding: 5px 15px;
-        border-radius: 20px;
+        padding: 5px 12px;
+        border-radius: 15px;
         font-weight: bold;
-        font-size: 16px;
+        font-size: 15px;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         border: 1px solid #ddd;
     }
     @media (prefers-color-scheme: dark) {
@@ -85,9 +91,31 @@ st.markdown(
             border: 1px solid #444;
         }
     }
-    /* Skub indhold ned */
+
+    /* 2. VIGTIGT: FLYT PROFIL-KNAPPEN OP I HEADEREN */
+    /* Vi målretter den første knap i hovedvinduet */
+    div[data-testid="stButton"]:first-of-type {
+        position: fixed !important;
+        top: 15px !important;     /* Placering fra toppen */
+        left: 50% !important;     /* Start fra midten... */
+        margin-left: -350px !important; /* ...og ryk til venstre kant af indholdet */
+        z-index: 999999 !important; /* Sørg for den ligger ØVERST */
+    }
+
+    /* Mobil-tilpasning: Hvis skærmen er lille, sæt den fast i venstre hjørne */
+    @media (max-width: 800px) {
+        div[data-testid="stButton"]:first-of-type {
+            left: 10px !important;
+            margin-left: 0 !important;
+        }
+        .header-content {
+            padding-left: 150px; /* Mindre plads på mobil */
+        }
+    }
+
+    /* 3. Skub resten af indholdet ned */
     .main .block-container {
-        padding-top: 80px !important;
+        padding-top: 90px !important;
     }
     header[data-testid="stHeader"] {
         display: none;
@@ -97,18 +125,19 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- 1. OPRET EN TOM PLADS TIL HEADEREN ØVERST ---
+# --- 1. OPRET HEADER PLADS ---
 header_placeholder = st.empty()
 
 # --- 2. FUNKTION TIL AT OPDATERE HEADEREN ---
 def opdater_header():
-    """Tegner headeren med de AKTUELLE tal fra session_state"""
+    """Tegner headeren (HTML)"""
     header_placeholder.markdown(
         f"""
         <div class="sticky-header">
             <div class="header-content">
-                <div style="font-weight:bold; font-size:18px;">Level {st.session_state['level']}</div>
-                <div style="display:flex; gap:10px;">
+                <div style="font-weight:800; font-size:18px; color:#E3000B;">Level {st.session_state['level']}</div>
+                
+                <div style="display:flex; gap:8px;">
                     <div class="stat-pill">⭐ {st.session_state['xp']} XP</div>
                     <div class="stat-pill">💰 {st.session_state['coins']}</div>
                 </div>
@@ -118,8 +147,17 @@ def opdater_header():
         unsafe_allow_html=True
     )
 
-# --- 3. KALD DEN STRAKS ---
+# --- 3. KALD HEADER STRAKS ---
 opdater_header()
+
+# --- 4. HER ER KNAPPEN (Som nu flyttes med CSS) ---
+# Vi placerer den her øverst i koden, så CSS'en "first-of-type" rammer den rigtige knap.
+if st.button("👤 Min Profil", type="primary"):
+    vis_profil() # Vi kalder funktionen direkte (defineret længere nede, men Python læser den hvis vi wrapper)
+
+# For at undgå fejl med at kalde vis_profil før den er defineret, 
+# definerer vi funktionerne HER, men lader knappen blive stående fysisk øverst.
+# (Streamlit læser hele scriptet, så vi flytter bare definitionerne op).
 
 # --- FUNKTIONER ---
 def check_levelup():
@@ -129,7 +167,6 @@ def check_levelup():
         st.toast(f"🎉 LEVEL UP! Du er nu Level {st.session_state['level']}!", icon="🆙")
         opdater_header()
 
-# NYT: Callback funktion til at håndtere likes
 def add_like(person_key):
     st.session_state[person_key] += 1
     st.toast("Du sendte et like! ❤️", icon="😍")
@@ -194,7 +231,9 @@ def vis_byggevejledning():
             if st.button("Gå til Shop"):
                 st.toast("Åbner shoppen...", icon="🛒")
 
-# --- HOVEDSKÆRM ---
+# --- HER STARTER SELVE SIDENS INDHOLD (EFTER HEADEREN) ---
+
+# --- HERO SECTION ---
 st.markdown(
     f"""<div style="display:flex; align-items:center; gap:12px;">
       <img src="{LEGO_LOGO_URL}" width="72"/>
@@ -216,8 +255,7 @@ with st.container(border=True):
         2. 🧱 **Byg og upload billede** (+100 XP & +50 Mønter)
         """)
 
-if st.button("👤 Åbn Min Profil", type="primary"):
-    vis_profil()
+# (Knappen er flyttet op, så vi fjerner den herfra)
 
 # --- TRIN 1: SCANNER ---
 st.write("---")
@@ -292,8 +330,6 @@ if uploaded_file is not None:
             
             st.write("🦖 *\"Se min farlige dino!\"*")
             
-            # --- INTERAKTIV LIKE KNAP ELIAS ---
-            # Vi bruger on_click til at opdatere tallet MED DET SAMME
             st.button(
                 f"❤️ {st.session_state['likes_elias']} Likes", 
                 key="like_elias", 
@@ -314,7 +350,6 @@ if uploaded_file is not None:
                 
             st.write("🐉 *\"Dragen passer på slottet\"*")
             
-            # --- INTERAKTIV LIKE KNAP SOFIA ---
             st.button(
                 f"❤️ {st.session_state['likes_sofia']} Likes", 
                 key="like_sofia", 
