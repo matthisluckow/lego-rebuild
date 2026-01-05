@@ -26,18 +26,106 @@ if 'level' not in st.session_state:
     st.session_state['level'] = 4
 if 'reward_claimed' not in st.session_state:
     st.session_state['reward_claimed'] = False
-# NYT: Husker om vi har givet belønning for scanning
 if 'scan_reward_given' not in st.session_state:
     st.session_state['scan_reward_given'] = False
 
-# --- FUNKTION: BEREGN LEVEL ---
+# --- CSS: STICKY HEADER & DESIGN ---
+st.markdown(
+    """
+    <style>
+    /* 1. STICKY HEADER (HUD) */
+    .sticky-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.95); /* Let gennemsigtig hvid */
+        border-bottom: 2px solid #E3000B; /* LEGO Rød kant */
+        padding: 10px 20px;
+        z-index: 999999;
+        display: flex;
+        justify-content: center; /* Centreret på siden */
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+    
+    /* Mørk mode support for headeren */
+    @media (prefers-color-scheme: dark) {
+        .sticky-header {
+            background-color: rgba(14, 17, 23, 0.95);
+            border-bottom: 2px solid #E3000B;
+        }
+    }
+
+    /* Container indeni headeren der styrer bredden */
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        max-width: 700px; /* Matcher appens bredde */
+    }
+
+    /* Stat bokse (XP og Mønter) */
+    .stat-pill {
+        background-color: #f0f2f6;
+        color: #31333F;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #ddd;
+    }
+    
+    /* Mørk mode for pills */
+    @media (prefers-color-scheme: dark) {
+        .stat-pill {
+            background-color: #262730;
+            color: white;
+            border: 1px solid #444;
+        }
+    }
+
+    /* 2. JUSTERING AF APP INDHOLD (SÅ DET IKKE GEMMER SIG BAG HEADEREN) */
+    .main .block-container {
+        padding-top: 80px !important; /* Skubber alt indhold ned */
+    }
+    
+    /* Skjul standard Streamlit header decoration for renere look */
+    header[data-testid="stHeader"] {
+        display: none;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# --- INJECT HTML FOR STICKY HEADER ---
+# Vi bruger Python f-strings til at sætte de rigtige tal ind
+st.markdown(
+    f"""
+    <div class="sticky-header">
+        <div class="header-content">
+            <div style="font-weight:bold; font-size:18px;">Level {st.session_state['level']}</div>
+            <div style="display:flex; gap:10px;">
+                <div class="stat-pill">⭐ {st.session_state['xp']} XP</div>
+                <div class="stat-pill">💰 {st.session_state['coins']}</div>
+            </div>
+        </div>
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
+
+# --- FUNKTIONER ---
 def check_levelup():
     if st.session_state['xp'] >= 600:
         st.session_state['level'] += 1
         st.session_state['xp'] -= 600
         st.toast(f"🎉 LEVEL UP! Du er nu Level {st.session_state['level']}!", icon="🆙")
 
-# --- FUNKTION: PROFIL POP-UP ---
 @st.dialog("👤 Min Bygmester Profil")
 def vis_profil():
     col1, col2 = st.columns([1, 3])
@@ -47,15 +135,10 @@ def vis_profil():
         st.write("### Hej Marcus (8 år) 👋")
     
     st.write("---")
-    
     current_xp = st.session_state['xp']
     st.caption(f"Din Bygge-status (Level {st.session_state['level']}):")
     progress_val = min(max(current_xp / 600, 0.0), 1.0)
     st.progress(progress_val, text=f"{current_xp} / 600 XP til næste level")
-    
-    c1, c2 = st.columns(2)
-    c1.metric("⭐ XP", f"{current_xp}", "Level op")
-    c2.metric("💰 Mønter", f"{st.session_state['coins']}", "Shop")
     
     st.write("---")
     st.write("**Dine Badges:**")
@@ -66,7 +149,6 @@ def vis_profil():
     if st.button("Luk Profil"):
         st.rerun()
 
-# --- FUNKTION: VISNING AF MANUAL + UPLOAD ---
 @st.dialog("Byggevejledning: X-Wing Fighter")
 def vis_byggevejledning():
     manual_path = BASE_DIR / "x-wing-manual.pdf"
@@ -86,26 +168,19 @@ def vis_byggevejledning():
     with tab2:
         st.header("Vis os dit mesterværk!")
         st.info("Upload et billede af din færdige model for at få din belønning.")
-        
         finished_img = st.file_uploader("Upload billede", type=['jpg', 'png'], key="finished_upload")
         
         if finished_img:
             st.image(finished_img, caption="Dit flotte byggeri!", width=200)
-            
-            # Tjek om belønning allerede er givet for DETTE byggeri
             if not st.session_state['reward_claimed']:
                 st.balloons()
                 st.session_state['coins'] += 50
                 st.session_state['xp'] += 100
                 st.session_state['reward_claimed'] = True
                 check_levelup()
-                st.success("🎉 TILLYKKE! Du har optjent:")
+                st.success("🎉 TILLYKKE! Du har optjent 100 XP og 50 Mønter!")
             else:
                 st.info("Du har allerede fået belønning for dette byggeri.")
-            
-            r1, r2 = st.columns(2)
-            r1.metric("Mønter", "+50", "💰")
-            r2.metric("XP", "+100", "⭐")
             
             if st.button("Gå til Shop"):
                 st.toast("Åbner shoppen...", icon="🛒")
@@ -120,12 +195,23 @@ st.markdown(
 
 st.subheader("Giv dine gamle klodser nyt liv!")
 
-# --- INFO BOKS (GAMIFICATION) ---
+# --- INFO BOKS (OPDATERET DESIGN) ---
+# Her bruger vi Markdown til at style teksten præcis som ønsket
 with st.container(border=True):
-    c_icon, c_text = st.columns([1, 5])
-    c_icon.markdown("# 🏆")
-    c_text.markdown("""**Bliv en Master Builder!** 1. Scan din bunke (+10 XP & Mønter)  
-    2. Byg og upload billede (+100 XP & +50 Mønter)""")
+    col_icon, col_content = st.columns([1, 6])
+    
+    with col_icon:
+        st.markdown("# 🏆")
+    
+    with col_content:
+        # Overskriften på egen linje med fed skrift
+        st.markdown("### Bliv en Master Builder!")
+        
+        # Liste med ikoner
+        st.markdown("""
+        1. 📸 **Scan din bunke** (+10 XP & Mønter)  
+        2. 🧱 **Byg og upload billede** (+100 XP & +50 Mønter)
+        """)
 
 if st.button("👤 Åbn Min Profil", type="primary"):
     vis_profil()
@@ -140,7 +226,6 @@ uploaded_file = st.file_uploader("Upload billede", type=['jpg', 'png', 'jpeg'])
 if uploaded_file is not None:
     st.image(uploaded_file, caption="Din bunke", use_container_width=True)
     
-    # RETTELSE: Vi kører kun analysen og belønningen ÉN gang
     if not st.session_state['scan_reward_given']:
         with st.status("🤖 AI analyserer klodser...", expanded=True) as status:
             time.sleep(1.0)
@@ -148,10 +233,9 @@ if uploaded_file is not None:
             time.sleep(1.0)
             status.update(label="Scanning Færdig! ✅", state="complete", expanded=False)
         
-        # Giv belønning og gem status
         st.session_state['coins'] += 10
         st.session_state['xp'] += 10
-        st.session_state['scan_reward_given'] = True # VIGTIGT: Nu er den markeret som "Givet"
+        st.session_state['scan_reward_given'] = True
         check_levelup()
         st.toast("Du fik 10 XP og 10 Mønter!", icon="⭐")
 
@@ -222,6 +306,5 @@ if uploaded_file is not None:
                 st.toast("Du likede Sofias Drage!", icon="❤️")
 
 else:
-    # Hvis man fjerner billedet, nulstiller vi status, så man kan scanne igen
     st.session_state['scan_reward_given'] = False
     st.write("👆 Start med at uploade et billede for at se magien.")
