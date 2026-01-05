@@ -164,6 +164,9 @@ st.markdown(
 
 st.subheader("Giv dine gamle klodser nyt liv!")
 
+if st.button("👤 Åbn Min Profil", type="primary"):
+    st.toast("Klik på pilen øverst til venstre for at se din profil", icon="👆")
+
 # --- TRIN 1: AI SCANNEREN (The Tech) ---
 st.write("---")
 st.header("📸 1. Scan din bunke")
