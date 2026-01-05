@@ -17,62 +17,70 @@ st.set_page_config(
     initial_sidebar_state="collapsed" # Starter lukket, så du ser knappen
 )
 
-# --- CSS HACK: TILPAS SIDEBAR KNAPPEN (NUCLEAR EDITION) ---
+# --- CSS HACK: TILPAS SIDEBAR KNAPPEN (UNIVERSAL FIX) ---
 st.markdown(
     """
     <style>
-    /* 1. Selve knappen (når sidebaren er lukket) */
-    [data-testid="stSidebarCollapsedControl"] {
+    /* Vi rammer FLERE mulige navne for knappen for at være sikker */
+    [data-testid="stSidebarCollapsedControl"], 
+    [data-testid="collapsedControl"] {
         background-color: #E3000B !important; /* LEGO Rød */
         border: 2px solid white !important;
-        border-radius: 12px !important; /* Lidt rundere */
-        padding: 4px 12px !important;
+        border-radius: 10px !important;
+        padding: 5px 15px !important;
         
-        /* TVING BREDDE - Dette er nøglen til at se teksten */
-        min-width: 140px !important; 
-        max-width: 140px !important;
+        /* TVING Størrelsen */
+        width: 150px !important; 
+        min-width: 150px !important;
+        height: 45px !important;
         
-        /* Flexbox layout */
+        /* Layout indeni knappen */
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        gap: 8px !important;
+        
+        /* VIGTIGT: Lad indholdet flyde ud hvis det er for stort */
+        overflow: visible !important;
         
         /* Skygge og placering */
-        box-shadow: 0px 4px 6px rgba(0,0,0,0.2) !important;
-        margin-top: 20px !important; /* Ryk ned */
-        margin-left: 20px !important; /* Ryk ind */
+        box-shadow: 0px 4px 6px rgba(0,0,0,0.3) !important;
+        margin-top: 15px !important;
+        margin-left: 15px !important;
+        
+        /* Sørg for at den ligger øverst */
+        z-index: 99999 !important;
     }
 
-    /* 2. Teksten "Min Profil" */
-    [data-testid="stSidebarCollapsedControl"]::after {
+    /* Indsæt teksten */
+    [data-testid="stSidebarCollapsedControl"]::after,
+    [data-testid="collapsedControl"]::after {
         content: "Min Profil" !important;
-        font-weight: 900 !important; /* Tyk skrift */
-        font-size: 16px !important;
-        color: #FFFFFF !important; /* Hvid tekst */
-        white-space: nowrap !important; /* Ingen linjeskift */
-        padding-top: 2px !important; /* Finjustering */
+        font-weight: 800 !important;
+        font-size: 18px !important;
+        color: white !important;
+        margin-left: 8px !important; /* Afstand til pilene */
+        white-space: nowrap !important; /* Forbyd linjeskift */
+        
+        /* Sørg for teksten er synlig */
+        display: inline-block !important;
+        visibility: visible !important;
     }
 
-    /* 3. Pil-ikonet */
-    [data-testid="stSidebarCollapsedControl"] svg {
+    /* Juster pil-ikonet så det ikke fylder for meget */
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="collapsedControl"] svg {
         fill: white !important;
-        width: 18px !important;
-        height: 18px !important;
-        min-width: 18px !important; /* Sikr at ikonet ikke forsvinder */
+        width: 24px !important;
+        height: 24px !important;
+        flex-shrink: 0 !important; /* Forhindrer ikonet i at blive mast */
     }
 
-    /* 4. Hover effekt */
-    [data-testid="stSidebarCollapsedControl"]:hover {
-        background-color: #C4000A !important; /* Mørkere rød ved hover */
+    /* Hover effekt */
+    [data-testid="stSidebarCollapsedControl"]:hover,
+    [data-testid="collapsedControl"]:hover {
+        background-color: #C4000A !important;
         transform: scale(1.05) !important;
-        transition: all 0.2s ease-in-out !important;
-        border-color: #FFD700 !important; /* Guld kant ved hover */
-    }
-    
-    /* Skjul den irriterende standard grå baggrund ved hover, hvis den findes */
-    button[kind="header"] {
-        background: transparent !important;
+        border-color: #FFD700 !important;
     }
     </style>
     """,
