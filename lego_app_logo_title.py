@@ -26,6 +26,9 @@ if 'level' not in st.session_state:
     st.session_state['level'] = 4
 if 'reward_claimed' not in st.session_state:
     st.session_state['reward_claimed'] = False
+# NYT: Husker om vi har givet belønning for scanning
+if 'scan_reward_given' not in st.session_state:
+    st.session_state['scan_reward_given'] = False
 
 # --- FUNKTION: BEREGN LEVEL ---
 def check_levelup():
@@ -88,15 +91,18 @@ def vis_byggevejledning():
         
         if finished_img:
             st.image(finished_img, caption="Dit flotte byggeri!", width=200)
-            st.balloons()
             
+            # Tjek om belønning allerede er givet for DETTE byggeri
             if not st.session_state['reward_claimed']:
+                st.balloons()
                 st.session_state['coins'] += 50
                 st.session_state['xp'] += 100
                 st.session_state['reward_claimed'] = True
                 check_levelup()
+                st.success("🎉 TILLYKKE! Du har optjent:")
+            else:
+                st.info("Du har allerede fået belønning for dette byggeri.")
             
-            st.success("🎉 TILLYKKE! Du har optjent:")
             r1, r2 = st.columns(2)
             r1.metric("Mønter", "+50", "💰")
             r2.metric("XP", "+100", "⭐")
@@ -134,13 +140,21 @@ uploaded_file = st.file_uploader("Upload billede", type=['jpg', 'png', 'jpeg'])
 if uploaded_file is not None:
     st.image(uploaded_file, caption="Din bunke", use_container_width=True)
     
-    with st.status("🤖 AI analyserer klodser...", expanded=True) as status:
-        time.sleep(1.0)
-        st.write("Matcher med LEGO databasen...")
-        time.sleep(1.0)
-        status.update(label="Scanning Færdig! ✅", state="complete", expanded=False)
+    # RETTELSE: Vi kører kun analysen og belønningen ÉN gang
+    if not st.session_state['scan_reward_given']:
+        with st.status("🤖 AI analyserer klodser...", expanded=True) as status:
+            time.sleep(1.0)
+            st.write("Matcher med LEGO databasen...")
+            time.sleep(1.0)
+            status.update(label="Scanning Færdig! ✅", state="complete", expanded=False)
         
-    st.toast("Du fik 10 XP og 10 Mønter!", icon="⭐")
+        # Giv belønning og gem status
+        st.session_state['coins'] += 10
+        st.session_state['xp'] += 10
+        st.session_state['scan_reward_given'] = True # VIGTIGT: Nu er den markeret som "Givet"
+        check_levelup()
+        st.toast("Du fik 10 XP og 10 Mønter!", icon="⭐")
+
     st.success("Vi fandt **432 klodser** i din bunke! Her er hvad du kan bygge:")
 
     # --- TRIN 2: BYGGEFORSLAG ---
@@ -170,53 +184,44 @@ if uploaded_file is not None:
         if st.button("Køb manglende", key="btn2"):
             st.toast('Lagt i kurv!', icon='🛒')
 
-    # --- TRIN 3: SOCIAL COMMUNITY (NYT DESIGN) ---
+    # --- TRIN 3: SOCIAL COMMUNITY ---
     st.write("---")
     st.subheader("🌟 Vennernes Galleri")
     st.write("Se hvad andre børn har bygget i dag med deres gamle klodser!")
 
-    # Vi laver 2 kolonner til "Posts"
     social_col1, social_col2 = st.columns(2)
 
-    # POST 1: Elias
     with social_col1:
         with st.container(border=True):
-            # Header med Avatar
             av1, txt1 = st.columns([1, 4])
-            av1.markdown("## 👦") # Emoji som avatar
+            av1.markdown("## 👦")
             txt1.markdown("**Elias (9 år)**")
             txt1.caption("2 timer siden")
             
-            # Billedet
             img_dino = BASE_DIR / "lego-dinosaur.png"
             if img_dino.exists():
                 st.image(str(img_dino), use_container_width=True)
             
             st.write("🦖 *\"Se min farlige dino!\"*")
-            
-            # Like knap
             if st.button("❤️ 12 Likes", key="like1"):
                 st.toast("Du likede Elias' Dinosaur!", icon="❤️")
 
-    # POST 2: Sofia
     with social_col2:
         with st.container(border=True):
-            # Header med Avatar
             av2, txt2 = st.columns([1, 4])
-            av2.markdown("## 👧") # Emoji som avatar
+            av2.markdown("## 👧")
             txt2.markdown("**Sofia (7 år)**")
             txt2.caption("4 timer siden")
             
-            # Billedet
             img_dragon = BASE_DIR / "den_grønne_drage.jpg"
             if img_dragon.exists():
                 st.image(str(img_dragon), use_container_width=True)
                 
             st.write("🐉 *\"Dragen passer på slottet\"*")
-            
-            # Like knap
             if st.button("❤️ 28 Likes", key="like2"):
                 st.toast("Du likede Sofias Drage!", icon="❤️")
 
 else:
+    # Hvis man fjerner billedet, nulstiller vi status, så man kan scanne igen
+    st.session_state['scan_reward_given'] = False
     st.write("👆 Start med at uploade et billede for at se magien.")
