@@ -10,15 +10,14 @@ BASE_DIR = Path(__file__).resolve().parent
 LEGO_LOGO_URL = "https://upload.wikimedia.org/wikipedia/commons/2/24/LEGO_logo.svg"
 
 # --- KONFIGURATION AF APPENS VIBE ---
-# RETTELSE: Tilføjet initial_sidebar_state="collapsed" så man ser knappen med det samme!
 st.set_page_config(
     page_title="LEGO ReBuild", 
     page_icon="🟥", 
     layout="centered", 
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="collapsed" # Starter lukket, så du ser knappen
 )
 
-# --- CSS HACK: TILPAS SIDEBAR KNAPPEN ---
+# --- CSS HACK: TILPAS SIDEBAR KNAPPEN (NUCLEAR EDITION) ---
 st.markdown(
     """
     <style>
@@ -26,44 +25,54 @@ st.markdown(
     [data-testid="stSidebarCollapsedControl"] {
         background-color: #E3000B !important; /* LEGO Rød */
         border: 2px solid white !important;
-        border-radius: 8px !important;
-        padding: 10px !important;
+        border-radius: 12px !important; /* Lidt rundere */
+        padding: 4px 12px !important;
         
-        /* Flexbox sikrer at pil og tekst står pænt på linje */
+        /* TVING BREDDE - Dette er nøglen til at se teksten */
+        min-width: 140px !important; 
+        max-width: 140px !important;
+        
+        /* Flexbox layout */
         display: flex !important;
         align-items: center !important;
+        justify-content: center !important;
         gap: 8px !important;
         
-        width: auto !important;
-        height: auto !important;
-        box-shadow: 2px 2px 8px rgba(0,0,0,0.3) !important;
-        
-        /* Flyt knappen lidt ned/ind så den ikke sidder helt oppe i hjørnet */
-        margin-top: 10px !important;
-        margin-left: 10px !important;
+        /* Skygge og placering */
+        box-shadow: 0px 4px 6px rgba(0,0,0,0.2) !important;
+        margin-top: 20px !important; /* Ryk ned */
+        margin-left: 20px !important; /* Ryk ind */
     }
 
     /* 2. Teksten "Min Profil" */
     [data-testid="stSidebarCollapsedControl"]::after {
         content: "Min Profil" !important;
-        font-weight: 800 !important; /* Extra bold */
+        font-weight: 900 !important; /* Tyk skrift */
         font-size: 16px !important;
-        color: white !important;
-        padding-right: 5px !important;
+        color: #FFFFFF !important; /* Hvid tekst */
+        white-space: nowrap !important; /* Ingen linjeskift */
+        padding-top: 2px !important; /* Finjustering */
     }
 
     /* 3. Pil-ikonet */
     [data-testid="stSidebarCollapsedControl"] svg {
         fill: white !important;
-        width: 20px !important;
-        height: 20px !important;
+        width: 18px !important;
+        height: 18px !important;
+        min-width: 18px !important; /* Sikr at ikonet ikke forsvinder */
     }
 
     /* 4. Hover effekt */
     [data-testid="stSidebarCollapsedControl"]:hover {
-        background-color: #B30009 !important; /* Mørkere rød */
-        transform: scale(1.05);
-        transition: transform 0.2s;
+        background-color: #C4000A !important; /* Mørkere rød ved hover */
+        transform: scale(1.05) !important;
+        transition: all 0.2s ease-in-out !important;
+        border-color: #FFD700 !important; /* Guld kant ved hover */
+    }
+    
+    /* Skjul den irriterende standard grå baggrund ved hover, hvis den findes */
+    button[kind="header"] {
+        background: transparent !important;
     }
     </style>
     """,
