@@ -14,10 +14,14 @@ st.set_page_config(
     page_title="LEGO ReBuild", 
     page_icon="🟥", 
     layout="centered",
-    initial_sidebar_state="collapsed" # Vi holder sidebaren lukket
+    initial_sidebar_state="collapsed"
 )
 
-# --- FUNKTION: PROFIL POP-UP (NY LØSNING) ---
+# --- SESSION STATE (HUSKER DINE MØNTER) ---
+if 'coins' not in st.session_state:
+    st.session_state['coins'] = 12 # Start antal
+
+# --- FUNKTION: PROFIL POP-UP ---
 @st.dialog("👤 Min Bygmester Profil")
 def vis_profil():
     col1, col2 = st.columns([1, 3])
@@ -32,15 +36,14 @@ def vis_profil():
     st.caption("Din Bygge-status:")
     st.progress(75, text="Level 4: Master Builder")
     
-    # Mønter og XP
+    # Mønter og XP (Henter fra session_state nu)
     c1, c2 = st.columns(2)
     c1.metric("⭐ XP", "450", "+50")
-    c2.metric("💰 Mønter", "12", "Shop")
+    c2.metric("💰 Mønter", f"{st.session_state['coins']}", "Shop")
     
     st.write("---")
     st.write("**Dine Badges:**")
     
-    # Vi bruger kolonner til at vise badges pænt
     b1, b2 = st.columns(2)
     b1.success("🚀 Rum-ekspert")
     b2.info("♻️ Genbrugs-helt")
@@ -49,28 +52,53 @@ def vis_profil():
     if st.button("Luk Profil"):
         st.rerun()
 
-# --- FUNKTION: VISNING AF MANUAL ---
+# --- FUNKTION: VISNING AF MANUAL + UPLOAD AF FÆRDIGT BYGGERI ---
 @st.dialog("Byggevejledning: X-Wing Fighter")
 def vis_byggevejledning():
     manual_path = BASE_DIR / "x-wing-manual.pdf"
     
-    if manual_path.exists():
-        with open(manual_path, "rb") as f:
-            pdf_data = f.read()
+    # --- FANEBLADE: MANUAL VS. FÆRDIG ---
+    tab1, tab2 = st.tabs(["📖 Vejledning", "📸 Færdig?"])
+    
+    with tab1:
+        if manual_path.exists():
+            with open(manual_path, "rb") as f:
+                pdf_data = f.read()
             
-        st.download_button(
-            label="📱 Åbn manual i fuld skærm",
-            data=pdf_data,
-            file_name="x-wing-manual.pdf",
-            mime="application/pdf",
-            use_container_width=True,
-            icon="📥"
-        )
-        st.divider()
-        st.write("**Forhåndsvisning:**")
-        pdf_viewer(str(manual_path))
-    else:
-        st.error("Kunne ikke finde manualen.")
+            st.download_button(
+                label="📱 Åbn manual i fuld skærm",
+                data=pdf_data,
+                file_name="x-wing-manual.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+                icon="📥"
+            )
+            st.divider()
+            st.write("**Forhåndsvisning:**")
+            pdf_viewer(str(manual_path))
+        else:
+            st.error("Kunne ikke finde manualen.")
+
+    with tab2:
+        st.header("Tjen mønter på dit mesterværk!")
+        st.info("Når du har bygget figuren færdig, så tag et billede af den her for at få din belønning.")
+        
+        # Upload af det færdige resultat
+        finished_img = st.file_uploader("Upload billede af din X-Wing", type=['jpg', 'png'], key="finished_upload")
+        
+        if finished_img:
+            st.image(finished_img, caption="Dit flotte byggeri!", width=200)
+            st.balloons() # FEST!
+            
+            # Opdater mønter (kun visuelt i denne session)
+            if st.session_state['coins'] == 12: # Så vi ikke giver uendelige mønter ved refresh
+                st.session_state['coins'] += 50
+            
+            st.success("🎉 TILLYKKE! Du har optjent **50 Mønter**!")
+            st.write(f"Din nye saldo: **{st.session_state['coins']} Mønter**")
+            
+            if st.button("Gå til Shop for at bruge dem"):
+                st.toast("Åbner shoppen... (Demo)", icon="🛒")
 
 # --- HOVEDSKÆRM: HERO SECTION ---
 st.markdown(
@@ -85,8 +113,17 @@ st.markdown(
 
 st.subheader("Giv dine gamle klodser nyt liv!")
 
-# --- HER ER DIN KNAP (PLAN B - NU MED POP-UP) ---
-# Vi bruger den røde knap til at kalde funktionen direkte
+# --- INFO BOKS OM MØNTER (GAMIFICATION INTRO) ---
+with st.container(border=True):
+    c_icon, c_text = st.columns([1, 5])
+    c_icon.markdown("# 💰")
+    c_text.markdown("""
+    **Vil du tjene mønter til shoppen?**
+    1. Scan din bunke (+10 mønter)
+    2. Byg en model og upload et billede (+50 mønter)
+    """)
+
+# --- PROFIL KNAP ---
 if st.button("👤 Åbn Min Profil", type="primary"):
     vis_profil()
 
@@ -94,7 +131,6 @@ if st.button("👤 Åbn Min Profil", type="primary"):
 st.write("---")
 st.header("📸 1. Scan din bunke")
 
-# (Resten af din kode er uændret herunder)
 st.info("Tag et billede af dine løse klodser på gulvet.")
 
 uploaded_file = st.file_uploader("Upload billede", type=['jpg', 'png', 'jpeg'])
@@ -108,9 +144,13 @@ if uploaded_file is not None:
         st.write("Matcher med LEGO databasen...")
         time.sleep(1.5)
         status.update(label="Scanning Færdig! ✅", state="complete", expanded=False)
+        
+    # GAMIFICATION FEEDBACK
+    st.toast("Du fik 10 mønter for at scanne!", icon="💰")
 
     st.success("Vi fandt **432 klodser** i din bunke! Her er hvad du kan bygge:")
 
+    # --- TRIN 2: BYGGEFORSLAG ---
     st.write("---")
     st.header("🚀 2. Vælg dit eventyr")
 
@@ -126,6 +166,8 @@ if uploaded_file is not None:
         st.write("**X-Wing Fighter (Mini)**")
         st.progress(100, text="Du har 100% af klodserne")
         
+        # Tydeliggør belønningen på knappen eller under den
+        st.caption("🏆 Belønning: 50 Mønter")
         if st.button("BYG NU (Gratis)", key="btn1"):
             vis_byggevejledning()
 
@@ -141,6 +183,7 @@ if uploaded_file is not None:
         st.warning("Mangler: 12 klodser")
         
         st.write("**Pris for manglende dele:** 24 DKK")
+        st.caption("🏆 Belønning: 100 Mønter")
         if st.button("Køb manglende + BYG", key="btn2"):
             st.toast('Klodser tilføjet til kurv!', icon='🛒')
             st.write("📦 Levering: 2-3 dage")
