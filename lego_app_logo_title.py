@@ -29,6 +29,12 @@ if 'reward_claimed' not in st.session_state:
 if 'scan_reward_given' not in st.session_state:
     st.session_state['scan_reward_given'] = False
 
+# NYT: HUSKER LIKES FOR VENNERNE
+if 'likes_elias' not in st.session_state:
+    st.session_state['likes_elias'] = 12
+if 'likes_sofia' not in st.session_state:
+    st.session_state['likes_sofia'] = 28
+
 # --- CSS: STICKY HEADER & DESIGN ---
 st.markdown(
     """
@@ -39,33 +45,27 @@ st.markdown(
         top: 0;
         left: 0;
         width: 100%;
-        background-color: rgba(255, 255, 255, 0.95); /* Let gennemsigtig hvid */
-        border-bottom: 2px solid #E3000B; /* LEGO Rød kant */
+        background-color: rgba(255, 255, 255, 0.95);
+        border-bottom: 2px solid #E3000B;
         padding: 10px 20px;
         z-index: 999999;
         display: flex;
-        justify-content: center; /* Centreret på siden */
+        justify-content: center;
         box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
     }
-    
-    /* Mørk mode support for headeren */
     @media (prefers-color-scheme: dark) {
         .sticky-header {
             background-color: rgba(14, 17, 23, 0.95);
             border-bottom: 2px solid #E3000B;
         }
     }
-
-    /* Container indeni headeren der styrer bredden */
     .header-content {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        max-width: 700px; /* Matcher appens bredde */
+        max-width: 700px;
     }
-
-    /* Stat bokse (XP og Mønter) */
     .stat-pill {
         background-color: #f0f2f6;
         color: #31333F;
@@ -78,8 +78,6 @@ st.markdown(
         gap: 8px;
         border: 1px solid #ddd;
     }
-    
-    /* Mørk mode for pills */
     @media (prefers-color-scheme: dark) {
         .stat-pill {
             background-color: #262730;
@@ -87,13 +85,10 @@ st.markdown(
             border: 1px solid #444;
         }
     }
-
-    /* 2. JUSTERING AF APP INDHOLD (SÅ DET IKKE GEMMER SIG BAG HEADEREN) */
+    /* Skub indhold ned */
     .main .block-container {
-        padding-top: 80px !important; /* Skubber alt indhold ned */
+        padding-top: 80px !important;
     }
-    
-    /* Skjul standard Streamlit header decoration for renere look */
     header[data-testid="stHeader"] {
         display: none;
     }
@@ -102,22 +97,29 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- INJECT HTML FOR STICKY HEADER ---
-# Vi bruger Python f-strings til at sætte de rigtige tal ind
-st.markdown(
-    f"""
-    <div class="sticky-header">
-        <div class="header-content">
-            <div style="font-weight:bold; font-size:18px;">Level {st.session_state['level']}</div>
-            <div style="display:flex; gap:10px;">
-                <div class="stat-pill">⭐ {st.session_state['xp']} XP</div>
-                <div class="stat-pill">💰 {st.session_state['coins']}</div>
+# --- 1. OPRET EN TOM PLADS TIL HEADEREN ØVERST ---
+header_placeholder = st.empty()
+
+# --- 2. FUNKTION TIL AT OPDATERE HEADEREN ---
+def opdater_header():
+    """Tegner headeren med de AKTUELLE tal fra session_state"""
+    header_placeholder.markdown(
+        f"""
+        <div class="sticky-header">
+            <div class="header-content">
+                <div style="font-weight:bold; font-size:18px;">Level {st.session_state['level']}</div>
+                <div style="display:flex; gap:10px;">
+                    <div class="stat-pill">⭐ {st.session_state['xp']} XP</div>
+                    <div class="stat-pill">💰 {st.session_state['coins']}</div>
+                </div>
             </div>
         </div>
-    </div>
-    """, 
-    unsafe_allow_html=True
-)
+        """, 
+        unsafe_allow_html=True
+    )
+
+# --- 3. KALD DEN STRAKS ---
+opdater_header()
 
 # --- FUNKTIONER ---
 def check_levelup():
@@ -125,6 +127,12 @@ def check_levelup():
         st.session_state['level'] += 1
         st.session_state['xp'] -= 600
         st.toast(f"🎉 LEVEL UP! Du er nu Level {st.session_state['level']}!", icon="🆙")
+        opdater_header()
+
+# NYT: Callback funktion til at håndtere likes
+def add_like(person_key):
+    st.session_state[person_key] += 1
+    st.toast("Du sendte et like! ❤️", icon="😍")
 
 @st.dialog("👤 Min Bygmester Profil")
 def vis_profil():
@@ -132,7 +140,7 @@ def vis_profil():
     with col1:
         st.image(LEGO_LOGO_URL, width=60)
     with col2:
-        st.write("### Marcus (8 år)")
+        st.write("### Hej Marcus (8 år) 👋")
     
     st.write("---")
     current_xp = st.session_state['xp']
@@ -178,6 +186,7 @@ def vis_byggevejledning():
                 st.session_state['xp'] += 100
                 st.session_state['reward_claimed'] = True
                 check_levelup()
+                opdater_header() 
                 st.success("🎉 TILLYKKE! Du har optjent 100 XP og 50 Mønter!")
             else:
                 st.info("Du har allerede fået belønning for dette byggeri.")
@@ -195,19 +204,13 @@ st.markdown(
 
 st.subheader("Giv dine gamle klodser nyt liv!")
 
-# --- INFO BOKS (OPDATERET DESIGN) ---
-# Her bruger vi Markdown til at style teksten præcis som ønsket
+# --- INFO BOKS ---
 with st.container(border=True):
     col_icon, col_content = st.columns([1, 6])
-    
     with col_icon:
         st.markdown("# 🏆")
-    
     with col_content:
-        # Overskriften på egen linje med fed skrift
         st.markdown("### Bliv en Master Builder!")
-        
-        # Liste med ikoner
         st.markdown("""
         1. 📸 **Scan din bunke** (+10 XP & Mønter)  
         2. 🧱 **Byg og upload billede** (+100 XP & +50 Mønter)
@@ -237,6 +240,7 @@ if uploaded_file is not None:
         st.session_state['xp'] += 10
         st.session_state['scan_reward_given'] = True
         check_levelup()
+        opdater_header()
         st.toast("Du fik 10 XP og 10 Mønter!", icon="⭐")
 
     st.success("Vi fandt **432 klodser** i din bunke! Her er hvad du kan bygge:")
@@ -287,8 +291,15 @@ if uploaded_file is not None:
                 st.image(str(img_dino), use_container_width=True)
             
             st.write("🦖 *\"Se min farlige dino!\"*")
-            if st.button("❤️ 12 Likes", key="like1"):
-                st.toast("Du likede Elias' Dinosaur!", icon="❤️")
+            
+            # --- INTERAKTIV LIKE KNAP ELIAS ---
+            # Vi bruger on_click til at opdatere tallet MED DET SAMME
+            st.button(
+                f"❤️ {st.session_state['likes_elias']} Likes", 
+                key="like_elias", 
+                on_click=add_like, 
+                args=('likes_elias',)
+            )
 
     with social_col2:
         with st.container(border=True):
@@ -302,8 +313,14 @@ if uploaded_file is not None:
                 st.image(str(img_dragon), use_container_width=True)
                 
             st.write("🐉 *\"Dragen passer på slottet\"*")
-            if st.button("❤️ 28 Likes", key="like2"):
-                st.toast("Du likede Sofias Drage!", icon="❤️")
+            
+            # --- INTERAKTIV LIKE KNAP SOFIA ---
+            st.button(
+                f"❤️ {st.session_state['likes_sofia']} Likes", 
+                key="like_sofia", 
+                on_click=add_like, 
+                args=('likes_sofia',)
+            )
 
 else:
     st.session_state['scan_reward_given'] = False
