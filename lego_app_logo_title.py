@@ -265,7 +265,7 @@ if uploaded_file is not None:
         img_path_castle = BASE_DIR / "lego-castle-kongens-borg-lego-70404.webp"
         if img_path_castle.exists():
             st.image(str(img_path_castle), use_container_width=True)
-        st.write("**Ridderborg tårn**")
+        st.write("**Ridderborg**")
         st.progress(85, text="85% af klodserne")
         st.warning("Mangler: 12 klodser")
         st.caption("🏆 +150 XP | +100 Mønter")
