@@ -267,4 +267,94 @@ if uploaded_file is not None:
     
     if not st.session_state['scan_reward_given']:
         with st.status("🤖 AI analyserer klodser...", expanded=True) as status:
-            time.sleep(1.
+            time.sleep(1.0)
+            st.write("Matcher med LEGO databasen...")
+            time.sleep(1.0)
+            status.update(label="Scanning Færdig! ✅", state="complete", expanded=False)
+        
+        st.session_state['coins'] += 10
+        st.session_state['xp'] += 10
+        st.session_state['scan_reward_given'] = True
+        check_levelup()
+        st.toast("Du fik 10 XP og 10 Mønter!", icon="⭐")
+        st.rerun() # Opdater headeren med det samme
+
+    st.success("Vi fandt **432 klodser** i din bunke! Her er hvad du kan bygge:")
+
+    # --- TRIN 2: BYGGEFORSLAG ---
+    st.write("---")
+    st.header("🚀 2. Vælg dit eventyr")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        img_path = BASE_DIR / "x-wing.png"
+        if img_path.exists():
+            st.image(str(img_path), use_container_width=True)
+        st.write("**X-Wing Fighter (Mini)**")
+        st.progress(100, text="100% af klodserne")
+        st.caption("🏆 +100 XP | +50 Mønter")
+        if st.button("BYG NU (Gratis)", key="btn1"):
+            vis_byggevejledning()
+
+    with col2:
+        img_path_castle = BASE_DIR / "lego-castle-kongens-borg-lego-70404.webp"
+        if img_path_castle.exists():
+            st.image(str(img_path_castle), use_container_width=True)
+        st.write("**Ridderborg tårn**")
+        st.progress(85, text="85% af klodserne")
+        st.warning("Mangler: 12 klodser")
+        st.caption("🏆 +150 XP | +100 Mønter")
+        if st.button("Køb manglende", key="btn2"):
+            st.toast('Lagt i kurv!', icon='🛒')
+
+    # --- TRIN 3: SOCIAL COMMUNITY ---
+    st.write("---")
+    st.subheader("🌟 Vennernes Galleri")
+    st.write("Se hvad andre børn har bygget i dag med deres gamle klodser!")
+
+    social_col1, social_col2 = st.columns(2)
+
+    with social_col1:
+        with st.container(border=True):
+            av1, txt1 = st.columns([1, 4])
+            av1.markdown("## 👦")
+            txt1.markdown("**Elias (9 år)**")
+            txt1.caption("2 timer siden")
+            
+            img_dino = BASE_DIR / "lego-dinosaur.png"
+            if img_dino.exists():
+                st.image(str(img_dino), use_container_width=True)
+            
+            st.write("🦖 *\"Se min farlige dino!\"*")
+            
+            st.button(
+                f"❤️ {st.session_state['likes_elias']} Likes", 
+                key="like_elias", 
+                on_click=add_like, 
+                args=('likes_elias',)
+            )
+
+    with social_col2:
+        with st.container(border=True):
+            av2, txt2 = st.columns([1, 4])
+            av2.markdown("## 👧")
+            txt2.markdown("**Sofia (7 år)**")
+            txt2.caption("4 timer siden")
+            
+            img_dragon = BASE_DIR / "den_grønne_drage.jpg"
+            if img_dragon.exists():
+                st.image(str(img_dragon), use_container_width=True)
+                
+            st.write("🐉 *\"Dragen passer på slottet\"*")
+            
+            st.button(
+                f"❤️ {st.session_state['likes_sofia']} Likes", 
+                key="like_sofia", 
+                on_click=add_like, 
+                args=('likes_sofia',)
+            )
+
+else:
+    st.session_state['scan_reward_given'] = False
+    st.write("👆 Start med at uploade et billede for at se magien.")
